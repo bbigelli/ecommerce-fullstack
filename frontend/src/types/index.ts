@@ -40,3 +40,23 @@ export interface AuthResponse {
 export interface ApiError {
   detail: string;
 }
+
+export interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  image_url: string;
+  quantity: number;
+  message?: string;
+}
+
+export interface CartContextType {
+  items: CartItem[];
+  addToCart: (product: Product, quantity?: number) => void;
+  removeFromCart: (productId: number) => void;
+  updateQuantity: (productId: number, quantity: number) => void;
+  clearCart: () => void;
+  getTotalItems: () => number;
+  getTotalPrice: () => number;
+  getWhatsAppMessage: () => string;
+}

@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Sobre Nós</h3>
             <p className="text-gray-300">
-              E-commerce API - Sua loja online completa com as melhores ofertas.
+              Artelli Artesanatos é uma loja online especializada em produtos artesanais personalizados. Cada peça é feita sob encomenda, garantindo exclusividade e qualidade para nossos clientes.
             </p>
           </div>
           <div>
@@ -21,13 +21,16 @@ const Footer: React.FC = () => {
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-4">Contato</h3>
-            <p className="text-gray-300">Email: contato@ecommerce.com</p>
-            <p className="text-gray-300">Telefone: (11) 9999-9999</p>
+            <p className="text-gray-300">WhatsApp: (11) 99221-6409</p>
           </div>
         </div>
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
-          <p>&copy; 2026 E-Commerce. Todos os direitos reservados.</p>
+          <p>&copy; 2026 Artelli Artesanatos. Todos os direitos reservados.</p>
+          <p>&copy; 2026 Desenvolvido por Bruno Bigelli</p>
         </div>
+        
+                  
+         
       </div>
     </footer>
   );

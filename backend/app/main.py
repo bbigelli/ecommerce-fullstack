@@ -1,45 +1,51 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from datetime import timedelta
-from . import models, database, auth, crud, schemas
+from sqlalchemy import text
+from . import models, database
 from .routers import auth as auth_router, products, users
+import os
 
-# Create tables
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(
-    title="E-Commerce API",
-    description="Simple e-commerce API with JWT authentication",
+    title="Artelli Artesanatos API",
+    description="API de e-commerce para artesanato personalizado sob encomenda",
     version="1.0.0"
 )
 
-# CORS middleware
+
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5173,http://localhost:3000"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
-# Include routers
 app.include_router(auth_router.router, prefix="/api", tags=["authentication"])
 app.include_router(products.router, prefix="/api/products", tags=["products"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])
 
+
 @app.get("/")
 def read_root():
     return {
-        "message": "Welcome to E-Commerce API",
+        "message": "Artelli Artesanatos API",
         "docs": "/docs",
         "redoc": "/redoc"
     }
 
+
 @app.get("/health")
 def health_check(db: Session = Depends(database.get_db)):
     try:
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
-    except Exception as e:
-        return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
+    except Exception:
+        return {"status": "unhealthy", "database": "disconnected"}

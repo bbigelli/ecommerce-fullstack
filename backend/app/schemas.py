@@ -2,24 +2,27 @@ from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Optional, List
 
-# User schemas
+
 class UserBase(BaseModel):
     email: EmailStr
     username: str
+    address: Optional[str] = None
+
 
 class UserCreate(UserBase):
     password: str
+
 
 class UserResponse(UserBase):
     id: int
     is_active: bool
     is_admin: bool
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 
-# Product schemas
+
 class ProductBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
@@ -28,8 +31,10 @@ class ProductBase(BaseModel):
     category: Optional[str] = None
     image_url: Optional[str] = None
 
+
 class ProductCreate(ProductBase):
     pass
+
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -40,20 +45,30 @@ class ProductUpdate(BaseModel):
     image_url: Optional[str] = None
     is_available: Optional[bool] = None
 
+
 class ProductResponse(ProductBase):
     id: int
     is_available: bool
     created_at: datetime
     updated_at: datetime
     owner_id: int
-    
+
     class Config:
         from_attributes = True
 
-# Token schemas
+
+class PaginatedProducts(BaseModel):
+    """Novo: resposta paginada com metadados"""
+    items: List[ProductResponse]
+    total: int
+    page: int
+    pages: int
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 
 class TokenData(BaseModel):
     username: Optional[str] = None
