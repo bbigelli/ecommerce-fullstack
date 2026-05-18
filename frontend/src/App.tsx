@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿// src/App.tsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
@@ -16,24 +16,20 @@ import Cart from './components/Cart/Cart';
 import './App.css';
 
 function App() {
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
   return (
     <Router>
       <AuthProvider>
         <ProductProvider>
           <CartProvider>
-            <Layout onCartClick={() => setIsCartOpen(true)}>
+            <Layout>
               <Toaster position="top-right" />
               <Routes>
-                {/* Home Page - ROTA PRINCIPAL */}
                 <Route path="/" element={<HomePage />} />
-                
-                {/* Rotas de Produtos */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
                 <Route path="/products" element={<ProductList />} />
                 <Route path="/products/:id" element={<ProductDetails />} />
-                
-                {/* Rotas de Admin */}
+                <Route path="/cart" element={<Cart />} />
                 <Route
                   path="/products/new"
                   element={
@@ -50,13 +46,8 @@ function App() {
                     </PrivateRoute>
                   }
                 />
-                
-                {/* Rotas de Autenticação */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
               </Routes>
             </Layout>
-            <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
           </CartProvider>
         </ProductProvider>
       </AuthProvider>

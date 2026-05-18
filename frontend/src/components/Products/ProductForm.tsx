@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProducts } from '../../contexts/ProductContext';
 import { productService } from '../../services/productService';
@@ -16,25 +16,22 @@ const ProductForm: React.FC = () => {
     price: 0,
     stock: 0,
     category: '',
-    image_url: ''
+    image_url: '',
+    is_available: true
   });
 
-  useEffect(() => {
-    if (id) {
-      loadProduct();
-    }
-  }, [id]);
-
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
+    if (!id) return;
     try {
-      const product = await productService.getProduct(parseInt(id!));
+      const product = await productService.getProduct(parseInt(id));
       setFormData({
         name: product.name,
         description: product.description || '',
         price: product.price,
         stock: product.stock,
         category: product.category || '',
-        image_url: product.image_url || ''
+        image_url: product.image_url || '',
+        is_available: product.is_available
       });
     } catch (error) {
       console.error('Erro ao carregar produto:', error);
@@ -42,13 +39,20 @@ const ProductForm: React.FC = () => {
     } finally {
       setFetching(false);
     }
-  };
+  }, [id, navigate]);
+
+  useEffect(() => {
+    if (id) {
+      loadProduct();
+    }
+  }, [id, loadProduct]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'price' || name === 'stock' ? Number(value) : value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,9 +72,7 @@ const ProductForm: React.FC = () => {
     }
   };
 
-  if (fetching) {
-    return <Loading />;
-  }
+  if (fetching) return <Loading />;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">

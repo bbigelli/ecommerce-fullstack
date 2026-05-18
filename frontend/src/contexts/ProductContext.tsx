@@ -1,6 +1,6 @@
-﻿import React, { createContext, useContext, useState, ReactNode } from 'react';
+﻿import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { productService } from '../services/productService';
-import { Product } from '../types';
+import { Product, ApiError } from '../types';
 import toast from 'react-hot-toast';
 
 interface ProductContextType {
@@ -22,62 +22,74 @@ export const useProducts = () => {
   return context;
 };
 
-interface ProductProviderProps {
-  children: ReactNode;
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'response' in error &&
+    error.response &&
+    typeof error.response === 'object' &&
+    'data' in error.response
+  ) {
+    const data = (error.response as { data?: ApiError }).data;
+    return data?.detail ?? fallback;
+  }
+  return fallback;
 }
 
-export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) => {
+export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
+    if (loading) return; // Previne chamadas simultâneas
+    
     setLoading(true);
     try {
       const data = await productService.getProducts();
       setProducts(data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Erro ao carregar produtos:', error);
-      toast.error('Erro ao carregar produtos');
+      toast.error('Erro ao carregar produtos. Verifique se o backend está rodando.');
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // Sem dependências para evitar recriação
 
-  const createProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at' | 'owner_id'>) => {
+  const createProduct = useCallback(async (
+    productData: Omit<Product, 'id' | 'created_at' | 'updated_at' | 'owner_id'>
+  ) => {
     try {
       const newProduct = await productService.createProduct(productData);
-      setProducts([...products, newProduct]);
+      setProducts(prev => [...prev, newProduct]);
       toast.success('Produto criado com sucesso!');
-    } catch (error: any) {
-      const message = error.response?.data?.detail || 'Erro ao criar produto';
-      toast.error(message);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Erro ao criar produto'));
       throw error;
     }
-  };
+  }, []);
 
-  const updateProduct = async (id: number, productData: Partial<Product>) => {
+  const updateProduct = useCallback(async (id: number, productData: Partial<Product>) => {
     try {
       const updated = await productService.updateProduct(id, productData);
-      setProducts(products.map(p => p.id === id ? updated : p));
+      setProducts(prev => prev.map(p => (p.id === id ? updated : p)));
       toast.success('Produto atualizado com sucesso!');
-    } catch (error: any) {
-      const message = error.response?.data?.detail || 'Erro ao atualizar produto';
-      toast.error(message);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Erro ao atualizar produto'));
       throw error;
     }
-  };
+  }, []);
 
-  const deleteProduct = async (id: number) => {
+  const deleteProduct = useCallback(async (id: number) => {
     try {
       await productService.deleteProduct(id);
-      setProducts(products.filter(p => p.id !== id));
+      setProducts(prev => prev.filter(p => p.id !== id));
       toast.success('Produto deletado com sucesso!');
-    } catch (error: any) {
-      const message = error.response?.data?.detail || 'Erro ao deletar produto';
-      toast.error(message);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Erro ao deletar produto'));
       throw error;
     }
-  };
+  }, []);
 
   return (
     <ProductContext.Provider value={{

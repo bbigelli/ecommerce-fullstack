@@ -1,9 +1,24 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { CartItem, Product, CartContextType } from '../types';
+// src/contexts/CartContext.tsx
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { Product } from '../types';
+
+interface CartItem extends Product {
+  quantity: number;
+}
+
+interface CartContextType {
+  cart: CartItem[];
+  addToCart: (product: Product) => void;
+  removeFromCart: (productId: number) => void;
+  updateQuantity: (productId: number, quantity: number) => void;
+  clearCart: () => void;
+  totalItems: number;
+  totalPrice: number;
+}
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const useCart = (): CartContextType => {
+export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
     throw new Error('useCart must be used within a CartProvider');
@@ -11,76 +26,66 @@ export const useCart = (): CartContextType => {
   return context;
 };
 
-export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('cart');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
+interface CartProviderProps {
+  children: ReactNode;
+}
+
+export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : [];
   });
 
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(items));
-  }, [items]);
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
 
-  const addToCart = useCallback((product: Product, quantity = 1) => {
-    setItems(current => {
-      const existing = current.find(item => item.id === product.id);
-      if (existing) {
-        return current.map(item =>
+  const addToCart = (product: Product) => {
+    setCart(prevCart => {
+      const existingItem = prevCart.find(item => item.id === product.id);
+      if (existingItem) {
+        return prevCart.map(item =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...current, {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image_url: product.image_url,
-        quantity,
-      }];
+      return [...prevCart, { ...product, quantity: 1 }];
     });
-  }, []);
+  };
 
-  const removeFromCart = useCallback((productId: number) => {
-    setItems(current => current.filter(item => item.id !== productId));
-  }, []);
+  const removeFromCart = (productId: number) => {
+    setCart(prevCart => prevCart.filter(item => item.id !== productId));
+  };
 
-  const updateQuantity = useCallback((productId: number, quantity: number) => {
+  const updateQuantity = (productId: number, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
     }
-    setItems(current =>
-      current.map(item => item.id === productId ? { ...item, quantity } : item)
+    setCart(prevCart =>
+      prevCart.map(item =>
+        item.id === productId ? { ...item, quantity } : item
+      )
     );
-  }, [removeFromCart]);
+  };
 
-  const clearCart = useCallback(() => setItems([]), []);
+  const clearCart = () => {
+    setCart([]);
+  };
 
-  const getTotalItems = useCallback(() =>
-    items.reduce((total, item) => total + item.quantity, 0), [items]);
-
-  const getTotalPrice = useCallback(() =>
-    items.reduce((total, item) => total + item.price * item.quantity, 0), [items]);
-
-  const getWhatsAppMessage = useCallback(() => {
-    const header = `🛍️ *PEDIDO DE ENCOMENDA* 🛍️\n\n`;
-    const itemsList = items
-      .map(item => `• ${item.name} - ${item.quantity}x (R$ ${(item.price * item.quantity).toFixed(2)})`)
-      .join('\n');
-    const total = `\n\n💰 *TOTAL: R$ ${getTotalPrice().toFixed(2)}*`;
-    const footer = `\n\n📦 Gostaria de saber condições de entrega e prazo para produção.`;
-    return `${header}${itemsList}${total}${footer}`;
-  }, [items, getTotalPrice]);
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
     <CartContext.Provider value={{
-      items, addToCart, removeFromCart, updateQuantity,
-      clearCart, getTotalItems, getTotalPrice, getWhatsAppMessage
+      cart,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      totalItems,
+      totalPrice
     }}>
       {children}
     </CartContext.Provider>

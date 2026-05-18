@@ -4,11 +4,11 @@ import { storage } from '../utils/storage';
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const formData = new FormData();
+    const formData = new URLSearchParams();
     formData.append('username', credentials.username);
     formData.append('password', credentials.password);
     
-    const response = await api.post('/token', formData, {
+    const response = await api.post('/token', formData.toString(), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
@@ -16,6 +16,10 @@ export const authService = {
     
     if (response.data.access_token) {
       storage.setToken(response.data.access_token);
+      // Armazenar também o tipo do token
+      if (response.data.token_type) {
+        localStorage.setItem('token_type', response.data.token_type);
+      }
     }
     
     return response.data;
@@ -27,6 +31,11 @@ export const authService = {
   },
   
   async getCurrentUser(): Promise<User> {
+    const token = storage.getToken();
+    if (!token) {
+      throw new Error('No token found');
+    }
+    
     const response = await api.get('/users/me');
     const user = response.data;
     storage.setUser(user);
@@ -35,9 +44,15 @@ export const authService = {
   
   logout(): void {
     storage.clearAll();
+    localStorage.removeItem('token_type');
   },
   
   isAuthenticated(): boolean {
-    return !!storage.getToken();
+    const token = storage.getToken();
+    return !!token;
+  },
+  
+  getToken(): string | null {
+    return storage.getToken();
   }
 };

@@ -2,6 +2,7 @@
   id: number;
   email: string;
   username: string;
+  address?: string;
   is_active: boolean;
   is_admin: boolean;
   created_at: string;
@@ -10,11 +11,11 @@
 export interface Product {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
   stock: number;
-  category: string;
-  image_url: string;
+  category: string | null;
+  image_url: string | null;
   is_available: boolean;
   created_at: string;
   updated_at: string;
@@ -37,15 +38,17 @@ export interface AuthResponse {
   token_type: string;
 }
 
+/** Formato de erro retornado pela API (FastAPI detail) */
 export interface ApiError {
   detail: string;
+  status?: number;
 }
 
 export interface CartItem {
   id: number;
   name: string;
   price: number;
-  image_url: string;
+  image_url: string | null;
   quantity: number;
   message?: string;
 }
@@ -60,3 +63,16 @@ export interface CartContextType {
   getTotalPrice: () => number;
   getWhatsAppMessage: () => string;
 }
+
+export interface ProductFormData {
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  category: string;
+  image_url: string;
+  is_available: boolean;
+}
+
+/** Tipo genérico para funções assíncronas */
+export type AsyncFn<T = void, A extends unknown[] = []> = (...args: A) => Promise<T>;

@@ -6,7 +6,6 @@ from typing import Optional, List
 class UserBase(BaseModel):
     email: EmailStr
     username: str
-    address: Optional[str] = None
 
 
 class UserCreate(UserBase):

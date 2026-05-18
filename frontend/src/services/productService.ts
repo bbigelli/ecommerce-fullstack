@@ -3,7 +3,7 @@ import { Product } from '../types';
 
 export const productService = {
   async getProducts(params?: { skip?: number; limit?: number; category?: string }): Promise<Product[]> {
-    const response = await api.get('/products/', { params });
+    const response = await api.get('/products', { params });
     return response.data;
   },
   
@@ -13,7 +13,7 @@ export const productService = {
   },
   
   async createProduct(product: Omit<Product, 'id' | 'created_at' | 'updated_at' | 'owner_id'>): Promise<Product> {
-    const response = await api.post('/products/', product);
+    const response = await api.post('/products', product);
     return response.data;
   },
   
@@ -23,6 +23,7 @@ export const productService = {
   },
   
   async deleteProduct(id: number): Promise<void> {
-    await api.delete(`/products/${id}`);
+    const response = await api.delete(`/products/${id}`);
+    return response.data;
   }
 };

@@ -17,31 +17,33 @@ const ProductDetails: React.FC = () => {
   const { isAdmin } = useAuth();
   const { addToCart } = useCart();
   const { deleteProduct } = useProducts();
-  const [product, setProduct] = useState<Product | null>(null);  // ← tipado corretamente
+
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-  useEffect(() => {
+  const loadProduct = useCallback(async () => {
     if (!id) return;
-    const loadProduct = async () => {
-      try {
-        const data = await productService.getProduct(parseInt(id));
-        setProduct(data);
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Erro ao carregar produto';
-        setError(message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadProduct();
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await productService.getProduct(parseInt(id, 10));
+      setProduct(data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro ao carregar produto';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => { loadProduct(); }, [loadProduct]);
 
   const handleAddToCart = useCallback(() => {
     if (!product) return;
     addToCart(product, quantity);
-    toast.success(`${quantity}x ${product.name} adicionado(s) ao carrinho!`);
+    toast.success(`${quantity}x "${product.name}" adicionado${quantity > 1 ? 's' : ''} ao carrinho!`);
   }, [addToCart, product, quantity]);
 
   const handleDelete = useCallback(async () => {
@@ -51,94 +53,129 @@ const ProductDetails: React.FC = () => {
       await deleteProduct(product.id);
       navigate('/products');
     } catch {
-      toast.error('Erro ao deletar produto');
+      // Erro já exibido pelo context
     }
   }, [deleteProduct, navigate, product]);
 
-  if (loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} />;
-  if (!product) return <ErrorMessage message="Produto não encontrado" />;
+  if (loading) return <Loading label="Carregando produto…" />;
+  if (error)   return <ErrorMessage message={error} onRetry={loadProduct} />;
+  if (!product) return <ErrorMessage message="Produto não encontrado." />;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="md:flex">
-          <div className="md:w-1/2 bg-gray-100 p-8">
+    <div className="page-container">
+      {/* Breadcrumb */}
+      <nav aria-label="Caminho de navegação" className="mb-6 text-sm text-gray-500">
+        <ol className="flex items-center gap-1.5 list-none flex-wrap">
+          <li><Link to="/" className="hover:text-gray-700 transition-colors">Início</Link></li>
+          <li aria-hidden="true">/</li>
+          <li><Link to="/products" className="hover:text-gray-700 transition-colors">Produtos</Link></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page" className="text-gray-900 font-medium line-clamp-1 max-w-[200px]">
+            {product.name}
+          </li>
+        </ol>
+      </nav>
+
+      <article className="card max-w-5xl mx-auto" aria-label={`Detalhes: ${product.name}`}>
+        <div className="flex flex-col md:flex-row">
+
+          {/* Imagem */}
+          <div className="md:w-2/5 bg-gray-50 flex items-center justify-center p-6 sm:p-8 min-h-[240px] sm:min-h-[320px]">
             <OptimizedImage
-              src={product.image_url}
-              alt={product.name}
-              className="w-full"
-              height={400}
+              src={product.image_url ?? ''}
+              alt={`Foto de ${product.name}`}
+              className="w-full max-h-80 md:max-h-96"
               objectFit="contain"
             />
           </div>
 
-          <div className="md:w-1/2 p-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
+          {/* Info */}
+          <div className="md:w-3/5 p-5 sm:p-8 flex flex-col gap-5">
 
-            <div className="mb-4">
-              <span className="text-3xl font-bold text-blue-600">
-                R$ {product.price.toFixed(2)}
-              </span>
+            <div>
+              {/* h1 único — nome do produto */}
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                {product.name}
+              </h1>
+              {product.category && (
+                <span className="badge">{product.category}</span>
+              )}
             </div>
 
-            <div className="mb-4 p-3 bg-yellow-50 rounded-md border border-yellow-200">
-              <p className="text-sm text-yellow-800 font-semibold">🎨 Produto Personalizado Sob Encomenda</p>
-              <p className="text-sm text-yellow-700 mt-1">Não trabalhamos com estoque fixo. Cada peça é feita especialmente para você!</p>
-            </div>
+            <p className="price text-3xl">
+              <span className="sr-only">Preço:</span>
+              R$ {product.price.toFixed(2)}
+            </p>
 
-            {product.category && (
-              <div className="mb-4">
-                <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
-                  {product.category}
-                </span>
-              </div>
-            )}
-
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Descrição</h2>
-              <p className="text-gray-600 leading-relaxed">
-                {product.description || 'Sem descrição disponível.'}
+            {/* Banner encomenda */}
+            <div className="order-banner" role="note" aria-label="Produto sob encomenda">
+              <p className="text-sm font-semibold text-yellow-800">🎨 Produto Personalizado Sob Encomenda</p>
+              <p className="text-sm text-yellow-700 mt-0.5">
+                Cada peça é feita especialmente para você. Sem estoque fixo.
               </p>
             </div>
 
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Quantidade</label>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="w-10 h-10 bg-gray-200 rounded-md hover:bg-gray-300 transition flex items-center justify-center"
-                  aria-label="Diminuir quantidade"
-                >-</button>
-                <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(q => q + 1)}
-                  className="w-10 h-10 bg-gray-200 rounded-md hover:bg-gray-300 transition flex items-center justify-center"
-                  aria-label="Aumentar quantidade"
-                >+</button>
-              </div>
-            </div>
+            {/* Descrição */}
+            {product.description && (
+              <section aria-labelledby="desc-title">
+                <h2 id="desc-title" className="text-base font-semibold text-gray-800 mb-1">Descrição</h2>
+                <p className="text-gray-600 text-sm leading-relaxed">{product.description}</p>
+              </section>
+            )}
 
-            <div className="mb-6">
-              <h3 className="text-md font-semibold text-gray-900 mb-2">Informações de Encomenda</h3>
+            {/* Informações de encomenda */}
+            <section aria-labelledby="info-title">
+              <h2 id="info-title" className="text-base font-semibold text-gray-800 mb-2">
+                Informações de Encomenda
+              </h2>
               <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
                 <li>Prazo de produção: 15 a 30 dias úteis</li>
                 <li>Pagamento: 50% de entrada, 50% na entrega</li>
-                <li>Envio para todo Brasil via Correios</li>
+                <li>Envio para todo o Brasil via Correios</li>
               </ul>
+            </section>
+
+            {/* Controle de quantidade */}
+            <div>
+              <label className="form-label" id="qty-label">Quantidade</label>
+              <div className="flex items-center gap-3 mt-1" role="group" aria-labelledby="qty-label">
+                <button
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  className="qty-btn"
+                  type="button"
+                  aria-label="Diminuir quantidade"
+                  disabled={quantity <= 1}
+                >
+                  −
+                </button>
+                <output
+                  htmlFor="qty-label"
+                  className="text-xl font-semibold w-10 text-center"
+                  aria-live="polite"
+                >
+                  {quantity}
+                </output>
+                <button
+                  onClick={() => setQuantity(q => q + 1)}
+                  className="qty-btn"
+                  type="button"
+                  aria-label="Aumentar quantidade"
+                >
+                  +
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <button
-                  onClick={handleAddToCart}
-                  className="flex-1 bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 transition flex items-center justify-center gap-2"
-                >
+            {/* Botões */}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col xs:flex-row gap-2">
+                <button onClick={handleAddToCart} className="btn-success flex-1" type="button">
                   Adicionar ao Carrinho
                 </button>
                 <button
                   onClick={() => navigate('/products')}
-                  className="flex-1 bg-gray-500 text-white py-3 px-4 rounded-md hover:bg-gray-600 transition"
+                  className="btn-secondary flex-1"
+                  type="button"
                 >
                   Voltar
                 </button>
@@ -147,25 +184,28 @@ const ProductDetails: React.FC = () => {
               <WhatsAppButton productName={product.name} productId={product.id} />
 
               {isAdmin && (
-                <div className="flex gap-3">
+                <div className="flex gap-2 pt-2 border-t border-gray-100" role="group" aria-label="Ações de administrador">
                   <Link
                     to={`/products/edit/${product.id}`}
-                    className="flex-1 bg-yellow-500 text-white text-center py-2 px-4 rounded-md hover:bg-yellow-600 transition"
+                    className="btn-warning flex-1"
+                    aria-label={`Editar ${product.name}`}
                   >
-                    Editar Produto
+                    Editar
                   </Link>
                   <button
                     onClick={handleDelete}
-                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition"
+                    className="btn-danger flex-1"
+                    type="button"
+                    aria-label={`Deletar ${product.name}`}
                   >
-                    Deletar Produto
+                    Deletar
                   </button>
                 </div>
               )}
             </div>
           </div>
         </div>
-      </div>
+      </article>
     </div>
   );
 };

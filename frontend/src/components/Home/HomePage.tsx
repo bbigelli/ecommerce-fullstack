@@ -1,89 +1,140 @@
+// src/components/Home/HomePage.tsx
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useProducts } from '../../contexts/ProductContext';
-import ProductCard from '../Products/ProductCard';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const HomePage: React.FC = () => {
-  const { products, loading, fetchProducts } = useProducts();
-  const featuredProducts = products.slice(0, 6);
+  const location = useLocation();
+  const { user } = useAuth();
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    // Verifica se veio com estado para rolar até alguma seção
+    if (location.state && (location.state as any).scrollTo) {
+      const sectionId = (location.state as any).scrollTo;
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100); // Pequeno delay para garantir que a página carregou
+    }
+  }, [location]);
 
   return (
-    <div>
+    <div className="bg-gradient-to-b from-artesanal-warm to-white">
       {/* Hero Section */}
-      <section className="relative h-[500px] flex items-center justify-center bg-gradient-to-r from-green-700 to-green-500">
-        <div className="text-center text-white px-4">
-          <h1 className="text-5xl font-bold mb-4">Artelli Artesanatos</h1>
-          <p className="text-xl mb-8">Peças únicas feitas à mão com amor</p>
-          <Link 
-            to="/products"
-            className="inline-block bg-yellow-500 text-gray-900 px-8 py-3 rounded-full font-semibold hover:bg-yellow-400"
-          >
-            Ver Produtos
-          </Link>
-        </div>
-      </section>
-
-      {/* Sobre Nós */}
-      <section className="py-16 bg-white" id="sobre">
+      <section id="home" className="relative overflow-hidden py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-8">Sobre Nós</h2>
-          <div className="w-20 h-1 bg-yellow-500 mx-auto mb-8"></div>
-          <div className="max-w-3xl mx-auto text-center">
-            <p className="text-gray-600 text-lg mb-4">
-              A Artelli Artesanatos nasceu do sonho de valorizar o trabalho manual 
-              e a criatividade brasileira.
+          <div className="text-center animate-fade-up">
+            <h1 className="text-5xl lg:text-7xl font-bold text-artesanal-brown mb-6">
+              Arte que Transforma
+              <span className="block text-artesanal-orange">Feito com Amor</span>
+            </h1>
+            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+              Peças únicas e personalizadas feitas à mão com materiais de qualidade.
+              Cada produto conta uma história especial.
             </p>
-            <p className="text-gray-600 text-lg">
-              Cada peça é única e produzida com muito carinho especialmente para você!
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Produtos em Destaque */}
-      <section className="py-16 bg-gray-50" id="produtos">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-8">Nossos Produtos</h2>
-          <div className="w-20 h-1 bg-yellow-500 mx-auto mb-8"></div>
-          
-          {loading ? (
-            <div className="text-center">Carregando...</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/products" className="btn-primary px-8 py-3 text-lg">
+                Explorar Produtos
+              </Link>
+              {!user && (
+                <Link to="/register" className="btn-secondary px-8 py-3 text-lg">
+                  Cadastre-se
+                </Link>
+              )}
             </div>
-          )}
-          
-          <div className="text-center mt-8">
-            <Link to="/products" className="inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
-              Ver todos os produtos
-            </Link>
           </div>
         </div>
       </section>
 
-      {/* Contato */}
-      <section className="py-16 bg-white" id="contato">
+      {/* Sobre Section */}
+      <section id="sobre" className="py-20 bg-gradient-to-r from-artesanal-cream to-artesanal-warm">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-8">Contato</h2>
-          <div className="w-20 h-1 bg-yellow-500 mx-auto mb-8"></div>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-artesanal-brown mb-4">
+              Nossa História
+            </h2>
+            <div className="divider-artesanal w-24 mx-auto" />
+          </div>
           
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-xl font-semibold mb-4">Fale Conosco</h3>
-              <p className="text-gray-600 mb-4">📱 (11) 9221-6409</p>
-              <a 
-                href="https://wa.me/551192216409"
-                className="inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
-              >
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <p className="text-lg text-gray-700 leading-relaxed">
+                A Artelli Artesanatos nasceu do sonho de valorizar o trabalho manual e 
+                a criatividade brasileira. Cada peça é cuidadosamente produzida por 
+                artesãos talentosos que transformam matéria-prima em arte.
+              </p>
+              <p className="text-lg text-gray-700 leading-relaxed">
+                Nossa missão é conectar pessoas a peças únicas, carregadas de 
+                significado e história. Trabalhamos exclusivamente sob encomenda 
+                para garantir que cada produto seja especial e personalizado.
+              </p>
+              <div className="flex gap-4 pt-4">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-artesanal-orange">100+</div>
+                  <div className="text-sm text-gray-600">Clientes Felizes</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-artesanal-orange">50+</div>
+                  <div className="text-sm text-gray-600">Produtos Únicos</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-artesanal-orange">5+</div>
+                  <div className="text-sm text-gray-600">Anos de História</div>
+                </div>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="absolute -top-4 -left-4 w-72 h-72 bg-artesanal-orange/20 rounded-full blur-3xl" />
+              <img
+                src="https://images.unsplash.com/photo-1452860606245-08befc0ff44b?ixlib=rb-4.0.3"
+                alt="Artesanato"
+                className="rounded-2xl shadow-2xl relative z-10 w-full"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contato Section */}
+      <section id="contato" className="py-20 bg-gradient-to-r from-artesanal-brown to-artesanal-terracotta">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Entre em Contato
+            </h2>
+            <div className="w-24 h-1 bg-yellow-400 mx-auto rounded-full" />
+            <p className="text-white/90 mt-4 text-lg">
+              Tire suas dúvidas ou faça seu pedido personalizado
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-1 gap-8 max-w-4xl mx-auto">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+              <div className="space-y-6">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-yellow-400 w-12 h-12 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">📞</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">Telefone</h3>
+                    <p className="text-white/80">(11) 99999-9999</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="bg-yellow-400 w-12 h-12 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">📍</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">Endereço</h3>
+                    <p className="text-white/80">São Paulo - SP</p>
+                  </div>
+                </div>
+              </div>
+              <button className="btn-whatsapp w-full mt-8">
                 Falar no WhatsApp
-              </a>
+              </button>
             </div>
           </div>
         </div>

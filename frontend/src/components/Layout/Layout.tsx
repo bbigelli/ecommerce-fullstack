@@ -1,17 +1,19 @@
-﻿import React, { ReactNode } from 'react';
+﻿// src/components/Layout/Layout.tsx
+import React, { ReactNode } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 
 interface LayoutProps {
   children: ReactNode;
-  onCartClick: () => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, onCartClick }) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header onCartClick={onCartClick} />
-      <main className="flex-grow">{children}</main>
+    <div className="min-h-screen bg-gradient-to-b from-artesanal-warm to-white">
+      <Header />
+      <main className="relative">
+        {children}
+      </main>
       <Footer />
     </div>
   );
