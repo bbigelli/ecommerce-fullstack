@@ -30,7 +30,7 @@ Artesãos que trabalham sob encomenda não se encaixam em plataformas de e-comme
 | **FastAPI** | Escolhido sobre Django/Flask pela performance assíncrona nativa e documentação OpenAPI automática | Conhecimento de arquitetura de APIs modernas |
 | **React + TypeScript** | TS evita classes inteiras de bugs em runtime; estritamente tipado (zero `any` nos contextos) | Maturidade e qualidade de código frontend |
 | **SQLAlchemy 2.0** | ORM maduro com suporte a queries assíncronas e migrations via Alembic | Domínio de camada de persistência |
-| **JWT (python-jose)** | Stateless por design; escalável horizontalmente sem sessões compartilhadas | Conhecimento de segurança em APIs |
+| **JWT** | Stateless por design; escalável horizontalmente sem sessões compartilhadas | Conhecimento de segurança em APIs |
 | **Context API** | Gerenciamento de estado proporcional à complexidade; Redux seria over-engineering aqui | Tomada de decisão técnica consciente |
 | **Docker + Compose** | Ambiente 100% reproduzível; elimina "funciona na minha máquina" | Mentalidade DevOps |
 | **Nginx** | Proxy reverso no frontend para SPA com roteamento correto em produção | Conhecimento de deploy real |
@@ -171,37 +171,6 @@ npm install
 npm run dev
 ```
 
----
-
-## 📁 Estrutura do Projeto
-
-```
-artelli-ecommerce/
-├── backend/
-│   ├── app/
-│   │   ├── routers/       # endpoints organizados por domínio
-│   │   ├── models.py      # tabelas do banco (SQLAlchemy)
-│   │   ├── schemas.py     # validação de dados (Pydantic)
-│   │   ├── crud.py        # operações de banco isoladas
-│   │   ├── auth.py        # JWT e hashing de senha
-│   │   └── main.py        # aplicação FastAPI + middleware
-│   ├── tests/
-│   ├── Dockerfile
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/    # UI organizada por feature
-│   │   ├── contexts/      # estado global (Auth, Cart, Products)
-│   │   ├── services/      # chamadas à API isoladas
-│   │   ├── types/         # interfaces TypeScript centralizadas
-│   │   └── utils/         # helpers reutilizáveis
-│   ├── Dockerfile
-│   └── nginx.conf
-├── docker-compose.yml
-└── README.md
-```
-
----
 
 ## 🔮 Próximos Passos (Roadmap)
 

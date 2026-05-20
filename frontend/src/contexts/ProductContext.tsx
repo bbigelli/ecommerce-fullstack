@@ -54,7 +54,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     } finally {
       setLoading(false);
     }
-  }, []); // Sem dependências para evitar recriação
+  }, []);
 
   const createProduct = useCallback(async (
     productData: Omit<Product, 'id' | 'created_at' | 'updated_at' | 'owner_id'>

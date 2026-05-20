@@ -119,7 +119,7 @@ const HomePage: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold">Telefone</h3>
-                    <p className="text-white/80">(11) 99999-9999</p>
+                    <p className="text-white/80">(11) 99221-6409</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
